@@ -3,12 +3,21 @@ import pandas as pd
 import file_handler
 from file_handler import process_input
 from datetime import datetime
-def load_css(css_file):
+from email_senders import send_email
+import email_senders
+from email_validator import validate_email, EmailNotValidError
+import sys
+import os
+import requests
 
-    with open(css_file) as f:
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-        st.markdown(
-            f"<style>{f.read()}</style>",
+if "employee_id" not in st.session_state:
+    st.warning("Please login first.")
+    st.switch_page("pages/login.py")
+    st.stop()
+st.markdown(
+            "<style>{read()}</style>",
             unsafe_allow_html=True
         )
 st.markdown("""
@@ -17,7 +26,7 @@ st.markdown("""
 <h1>🔐 Secure Data Scanner</h1>
 
 <p>
-AI Powered Data Leakage Prevention System
+AI-Powered Enterprise Data Leakage Prevention System
 </p>
 
 </div>
@@ -173,6 +182,14 @@ border:1px solid #2f3542;
 margin-top:25px;
 
 }
+    [data-testid="stFileUploader"]{
+    min-height:180px;
+    width:100%;
+    border:2px dashed #7c3aed;
+    border-radius:18px;
+    padding:25px;
+    background:#161b22;
+}
 </style>
 """,unsafe_allow_html=True)
 if "action" not in st.session_state:
@@ -214,12 +231,21 @@ with col4:
 st.subheader("📄 Scan Document")
 st.markdown('<div class="chat-box">', unsafe_allow_html=True)
 
+recipient_email = st.text_input(
+    "📧 Receiver Email",
+    placeholder="example@gmail.com"
+)
+lines="none"
+user_text="none"
+lines = max(8, user_text.count("\n") + 4 if "user_text" in locals() else 8)
 user_text = st.text_area(
     "Enter your message",
-    height=170,
-    placeholder="Paste text here or upload a document...",
-    label_visibility="collapsed"
+    value=st.session_state.get("user_text", ""),
+    height=lines * 25,
+    key="user_text"
 )
+
+
 col1, col2, col3 = st.columns([1,5,1])
 with col1:
   uploaded_file = st.file_uploader(
@@ -286,37 +312,181 @@ if send:
     else:
         st.session_state.result = result
         st.session_state.message = result["content"]
-result = st.session_state.get("result")
-if result is not None:
-    if result.get("detected"):
+scan_result = st.session_state.get("result")
+if scan_result is not None:
+    if scan_result.get("detected"):
         if st.session_state.action is None:
-            show_popup(result)
+            show_popup(scan_result)
         elif st.session_state.action == "blocked":
-            st.error("🚫 Message was blocked.")
-            st.info(
-    f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
-    f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
-)
-            st.session_state.result = None
-            st.session_state.action = None
-            st.session_state.message = ""
+              st.error("🚫 Message was blocked.")
+              st.info(
+                 f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
+                 f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
+                 )
+              st.session_state.result = None
+              st.session_state.action = None
+              st.session_state.message = ""
+              st.stop()
         elif st.session_state.action == "processed":
-            st.success("✅ Message Sent Successfully")
+
+            # Get email body
+            email_body = scan_result.get("content", "")
+
+
+            # Validate receiver email
+            if recipient_email.strip() == "":
+                st.error("❌ Please enter receiver email.")
+                st.stop()
+
+
+            try:
+                validate_email(recipient_email.strip())
+
+            except EmailNotValidError:
+                st.error("❌ Invalid Email Address")
+                st.stop()
+
+
+            # Send incident to FastAPI backend
+            try:
+
+                response = requests.post(
+
+                    "http://127.0.0.1:8000/incidents/process",
+
+                    json={
+
+    "employee_id": st.session_state["employee_id"],
+
+    "receiver_email": recipient_email.strip(),
+
+    "sender_email": st.session_state.email,
+
+    "risk_level": scan_result.get("risk"),
+
+    "detected_data": str(scan_result.get("detections", [])),
+
+    "message": email_body,
+
+    "status": "BLOCKED"
+
+}
+
+                )
+
+
+                if response.status_code == 200:
+
+                    st.success(
+                        "✅ Message Delivered Successfully"
+                    )
+
+                    st.info(
+                        "🔐 Security system verified the message."
+                    )
+
+                    st.warning(
+                        "⚠ Admin has been notified about this activity."
+                    )
+
+
+                else:
+
+                    st.error(
+                        "❌ Incident processing failed"
+                    )
+
+                    st.code(response.text)
+
+
+            except Exception as e:
+
+                st.error(
+                    "❌ Backend connection failed"
+                )
+
+                st.code(str(e))
+
+
+            # Display uploaded file details
             if uploaded_file is not None:
-                st.info(
-    f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
-    f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
-)
+
                 st.markdown("## 📄 Uploaded File")
-                st.write("**File Name:**", uploaded_file.name)
-                st.write("**File Type:**", uploaded_file.type)
+
+                st.write(
+                    "**File Name:**",
+                    uploaded_file.name
+                )
+
+                st.write(
+                    "**File Type:**",
+                    uploaded_file.type
+                )
+
+
             st.markdown("### 📄 Content")
-            st.code(st.session_state.message)
+
+            st.code(email_body)
+
+
+            # Clear session
             st.session_state.result = None
+
             st.session_state.action = None
+
             st.session_state.message = ""
+        
     else:
         st.success("✅ Document is Safe")
+        # Prepare email body
+        email_body = st.session_state.get("message", "")
+
+    # If no message is stored, use user text
+        if email_body.strip() == "":
+            email_body = user_text
+
+    # If a file was uploaded and extracted, use result content
+        if st.session_state.result is not None:
+                email_body = st.session_state.result.get(
+                    "content",
+                    email_body
+    )
+    # Send email
+        if recipient_email.strip() == "":
+            st.error("❌ Please enter receiver email.")
+        else:
+            try:
+                validate_email(recipient_email.strip())
+            except EmailNotValidError:
+                st.error("❌ Invalid Email Address")
+                st.stop()
+            email_result = send_email(
+            receiver=recipient_email.strip(),
+            subject="Secure Data Scanner Report",
+            body=email_body
+        )
+
+            if email_result is True:
+                st.success("✅ Message Sent Successfully")
+                st.success("📧 Email Sent Successfully!")
+                requests.post(
+    "http://127.0.0.1:8000/incidents/process",
+    json={
+        "employee_id": st.session_state.employee_id,
+        "receiver_email": recipient_email.strip(),
+        "sender_email": st.session_state.email,
+        "risk_level": "SAFE",
+        "detected_data": "None",
+        "message": email_body,
+        "status": "SAFE"
+    }
+)
+                
+            else:
+                st.error("❌ Email Sending Failed")
+                st.error("e-mail is does not exist please enter valid emaild ID")
+                st.code(email_result)
+                st.stop()
         st.info(
             f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
             f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
@@ -333,4 +503,3 @@ st.markdown("---")
 st.caption(
 "Secure Data Scanner • AI Powered DLP • Version 1.0"
 )
-
