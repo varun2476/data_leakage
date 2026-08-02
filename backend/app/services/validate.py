@@ -1,14 +1,6 @@
 import re
-import sys
-import os
-
-backend_path = os.path.abspath("../backend")
-
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 from app.ml.ml_classifier import predict_document
-
 
 
 # =========================
@@ -34,14 +26,7 @@ SENSITIVE_KEYWORDS = [
     "aadhaar",
     "pan",
     "ration card",
-    "marksheet",
-    "hall ticket",
-    "admit card",
-    "10th",
-    "12th",
-    "intermediate",
-    "diploma",
-    "degree"
+    
 ]
 
 
@@ -222,48 +207,39 @@ def analyze_text(text):
 
         ml_confidence = 0
 
-
-
-    # =========================
-    # FINAL RISK ENGINE
-    # =========================
-
+# =========================
+# FINAL RISK ENGINE
+# =========================
 
     sensitive_count = len(detections)
 
-
-
-    if sensitive_count >= 2:
-
-
-        risk = "CRITICAL"
-
-
-
-    elif sensitive_count == 1:
-
-
-        risk = "HIGH"
-
-
-
-    else:
-
-
-        if (
-            ml_label == "Confidential"
-            and ml_confidence >= 70
-        ):
-
-
-            risk = "MEDIUM"
-
-
-        else:
-
-
+    if sensitive_count == 0:
             risk = "SAFE"
 
+    elif sensitive_count == 1:
+            risk = "LOW"
+
+    elif sensitive_count == 2:
+            risk = "MEDIUM"
+
+    elif sensitive_count == 3:
+            risk = "HIGH"
+
+    else:
+            risk = "CRITICAL"
+
+
+# Optional: Upgrade risk based on ML predictio
+    if ml_label == "Confidential" and ml_confidence >= 85:
+
+        if risk == "LOW":
+            risk = "MEDIUM"
+
+        elif risk == "MEDIUM":
+            risk = "MEDIUM"
+
+        elif risk == "HIGH":
+            risk = "CRITICAL"
 
 
 

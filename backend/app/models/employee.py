@@ -51,3 +51,4 @@ class Employee(Base):
         DateTime,
         default=datetime.utcnow
     )
+    status = Column(String)

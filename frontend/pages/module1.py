@@ -9,6 +9,60 @@ from email_validator import validate_email, EmailNotValidError
 import sys
 import os
 import requests
+from sidebar import employee_sidebar
+
+
+st.set_page_config(
+    page_title="Scan History",
+    layout="wide"
+)
+
+
+employee_sidebar()
+
+def scan_document_api(uploaded_file):
+
+    try:
+
+        response = requests.post(
+            "http://127.0.0.1:8000/scanner/analyze",
+            files={
+                "file":(
+                    uploaded_file.name,
+                    uploaded_file.getvalue(),
+                    uploaded_file.type
+                )
+            }
+        )
+
+
+        if response.status_code == 200:
+
+            return response.json()
+
+
+        else:
+
+            st.error("Scanner API Failed")
+            st.code(response.text)
+
+            return {
+                "status":False,
+                "message":"API Error"
+            }
+
+
+    except Exception as e:
+
+        st.error("Backend Connection Failed")
+        st.code(str(e))
+
+        return {
+            "status":False,
+            "message":"Connection Error"
+        }
+
+        
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
@@ -16,182 +70,303 @@ if "employee_id" not in st.session_state:
     st.warning("Please login first.")
     st.switch_page("pages/login.py")
     st.stop()
-st.markdown(
-            "<style>{read()}</style>",
-            unsafe_allow_html=True
-        )
+
 st.markdown("""
-<div class='hero'>
-
-<h1>🔐 Secure Data Scanner</h1>
-
-<p>
-AI-Powered Enterprise Data Leakage Prevention System
-</p>
-
+<div class="dashboard-header">
+    <h1>🔐 Secure Data Scanner</h1>
+    <p>AI Powered Enterprise Data Leakage Prevention System</p>
 </div>
-""",unsafe_allow_html=True)
-
-st.markdown("""
+""", unsafe_allow_html=True)
+st.markdown(
+"""
 <style>
-/* Whole App Background */
-.stApp{
+
+/* =========================
+   GLOBAL APPLICATION
+========================= */
+
+.stApp {
     background:#0b1120;
 }
+
+
+/* Remove Streamlit top header */
+
+header {
+    visibility:hidden;
+    height:0px;
+}
+
+
+[data-testid="stToolbar"] {
+    display:none;
+}
+
 
 /* Main container */
-.main{
+
+[data-testid="stAppViewContainer"] {
     background:#0b1120;
 }
 
-/* Remove white top area */
-[data-testid="stAppViewContainer"]{
-    background:#0b1120;
-}
- html, body{
-    background:#0b1120;
-}
-/* Remove header background */
-[data-testid="stHeader"]{
-    background:#0b1120;
-}
- header{
-    visibility:hidden;
-}
 
-[data-testid="stToolbar"]{
-    display:none;
-}
- Background : #0B1120
-Card       : #111827
-Border     : #334155
-Primary    : #2563EB
-Success    : #22C55E
-Warning    : #F59E0B
-Danger     : #EF4444
-Text       : #FFFFFF
-Subtitle   : #94A3B8
-[data-testid="stDecoration"]{
-    display:none;
-}
-/* Remove toolbar spacing */
-header{
-    background:#0b1120 !important;
-}
-
-/* Main block */
-.block-container{
-    padding-top:1rem;
-    background:#0b1120;
-}
-section[data-testid="stSidebar"]{
-    background:#0f172a;
-}
-
-section[data-testid="stSidebar"] *{
-    color:white;
-}
-.hero{
-
-padding:35px;
-
-border-radius:20px;
-
-background:linear-gradient(135deg,#18181b,#111827);
-
-border:1px solid #374151;
-
-text-align:center;
-
-margin-bottom:25px;
-
-}
-
-.hero h1{
-font-size:55px;
-color:white;
-}
-.hero p{
-color:#bdbdbd;
-font-size:20px;
-}
-
-.stApp{
-    background:#0b1120;
-    color:white;
-}
-
-.main{
+[data-testid="stMainBlockContainer"] {
     background:#0b1120;
 }
 
-.block-container{
+
+/* Content spacing */
+
+.block-container {
+
     padding-top:2rem;
-    max-width:1200px;
-}
-
-h1,h2,h3,h4,h5,p,label{
-    color:white;
-}
-[data-testid="stFileUploader"]{
-
-background:#161b22;
-
-border:2px dashed #6d28d9;
-
-border-radius:18px;
-
-padding:20px;
-
-}
-            .stButton>button{
-
-width:100%;
-
-height:60px;
-
-border-radius:15px;
-
-font-size:22px;
-
-font-weight:bold;
-
-background:linear-gradient(90deg,#3b82f6,#9333ea);
-
-color:white;
-
-border:none;
+    padding-left:2rem;
+    padding-right:2rem;
 
 }
 
-.stButton>button:hover{
 
-transform:scale(1.02);
 
-}
-.scan-card{
+/* =========================
+   SIDEBAR
+========================= */
 
-background:#111827;
 
-padding:30px;
+section[data-testid="stSidebar"] {
 
-border-radius:20px;
-
-border:1px solid #2f3542;
-
-margin-top:25px;
+    background:#0f172a !important;
+    border-right:1px solid #1e293b;
 
 }
-    [data-testid="stFileUploader"]{
-    min-height:180px;
-    width:100%;
-    border:2px dashed #7c3aed;
+
+
+section[data-testid="stSidebar"] > div {
+
+    background:#0f172a !important;
+
+}
+
+
+/* Sidebar text */
+
+section[data-testid="stSidebar"] * {
+
+    color:white !important;
+
+}
+
+
+
+/* =========================
+   DASHBOARD HEADER
+========================= */
+
+
+.dashboard-header {
+
+    background:linear-gradient(135deg,#1e293b,#111827);
+
+    border:1px solid #334155;
+
     border-radius:18px;
-    padding:25px;
-    background:#161b22;
+
+    padding:35px;
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+    box-shadow:0 8px 25px rgba(0,0,0,.35);
+
 }
+
+
+.dashboard-header h1 {
+
+    color:white;
+
+    font-size:46px;
+
+}
+
+
+.dashboard-header p {
+
+    color:#cbd5e1;
+
+    font-size:18px;
+
+}
+
+
+
+/* =========================
+   CARDS
+========================= */
+
+
+.scan-card {
+
+    background:#111827;
+
+    border:1px solid #334155;
+
+    border-radius:18px;
+
+    padding:25px;
+
+    margin-top:20px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+
+}
+
+
+
+.metric-card {
+
+    background:#1e293b;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    text-align:center;
+
+    border:1px solid #334155;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+
+}
+
+
+
+.metric-icon {
+
+    font-size:30px;
+
+}
+
+
+
+.metric-title {
+
+    color:#cbd5e1;
+
+    font-size:15px;
+
+    font-weight:600;
+
+}
+
+
+
+.metric-value {
+
+    color:white;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+
+
+/* =========================
+   FILE UPLOADER
+========================= */
+
+
+[data-testid="stFileUploader"] {
+
+    background:#161b22;
+
+    border:2px dashed #3b82f6;
+
+    border-radius:15px;
+
+    padding:20px;
+
+}
+
+
+
+/* =========================
+   BUTTON STYLE
+========================= */
+
+
+.stButton > button {
+
+    width:100%;
+
+    height:50px;
+
+    border-radius:12px;
+
+    background:linear-gradient(90deg,#2563eb,#7c3aed);
+
+    color:white;
+
+    border:none;
+
+    font-size:18px;
+
+    font-weight:600;
+
+}
+
+
+
+.stButton > button:hover {
+
+    transform:scale(1.02);
+
+    border:1px solid #60a5fa;
+
+}
+
+
+
+/* =========================
+   REMOVE STREAMLIT WHITE GAP
+========================= */
+
+
+/* Left sidebar + main divider */
+
+[data-testid="stSidebar"] {
+
+    min-width:260px;
+
+}
+
+
+/* Main area beside sidebar */
+
+.main {
+
+    background:#0b1120;
+
+}
+
+
+
+/* Fix blank right/side background */
+
+[data-testid="stAppViewContainer"] > section {
+
+    background:#0b1120;
+
+}
+
+
 </style>
-""",unsafe_allow_html=True)
+""",
+unsafe_allow_html=True
+)
+
 if "action" not in st.session_state:
     st.session_state.action = None
 
@@ -213,55 +388,68 @@ if "sensitive_found" not in st.session_state:
 if "risk_level" not in st.session_state:
     st.session_state.risk_level = "--"
 
-
-
-col1, col2, col3, col4 = st.columns(4)
+def metric_card(icon, title, value, color="#38bdf8"):
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-icon">{icon}</div>
+        <div class="metric-title">{title}</div>
+        <div class="metric-value" style="color:{color};">
+            {value}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+col1,col2,col3,col4 = st.columns(4)
 
 with col1:
-    st.metric("📄 Files Scanned", st.session_state.files_scanned)
+    metric_card("📄","Files Scanned",st.session_state.files_scanned,"#38bdf8")
 
 with col2:
-    st.metric("🔒 Sensitive Found", st.session_state.sensitive_found)
+    metric_card("🔒","Sensitive Found",st.session_state.sensitive_found,"#22c55e")
 
 with col3:
-    st.metric("⚠ Risk Level", st.session_state.risk_level)
+    metric_card("⚠","Risk Level",st.session_state.risk_level,"#f59e0b")
 
 with col4:
-    st.metric("🤖 Accuracy", "99.8%")
-st.subheader("📄 Scan Document")
-st.markdown('<div class="chat-box">', unsafe_allow_html=True)
+    metric_card("🤖","Accuracy","99.8%","#8b5cf6")
+if st.session_state.scan_time:
+    st.markdown(
+        f"<span style='color:white;'><b>🕒 Last Scan:</b> {st.session_state.scan_time}</span>",
+        unsafe_allow_html=True
+    )
+
+
+
+
+st.markdown(
+    "<p style='color:white; font-weight:bold;'>📧 Receiver Email</p>",
+    unsafe_allow_html=True
+)
 
 recipient_email = st.text_input(
-    "📧 Receiver Email",
-    placeholder="example@gmail.com"
-)
-lines="none"
-user_text="none"
-lines = max(8, user_text.count("\n") + 4 if "user_text" in locals() else 8)
-user_text = st.text_area(
-    "Enter your message",
-    value=st.session_state.get("user_text", ""),
-    height=lines * 25,
-    key="user_text"
+    label="Receiver Email",
+    label_visibility="collapsed",
+    placeholder="example@gmail.com",
 )
 
+st.markdown(
+    "<h2 style='color:white;'>📄 Place  Document Here </h2>",
+    unsafe_allow_html=True
+)
 
-col1, col2, col3 = st.columns([1,5,1])
-with col1:
-  uploaded_file = st.file_uploader(
-    "Upload File",
+uploaded_file = st.file_uploader(
+    "📂 Upload Document",
     type=["txt", "pdf", "docx"],
-    key="upload_file",
-    label_visibility="collapsed"
+    key="upload_file"
 )
-print("APP - After uploader:", uploaded_file)
-if uploaded_file is not None:
-    st.session_state["uploaded_file"] = uploaded_file
-with col2:
-    st.empty()
-with col3:
-    st.markdown("</div>", unsafe_allow_html=True)
 
+if uploaded_file is not None:
+
+    st.session_state["uploaded_file"] = uploaded_file
+
+    scan_result = process_input(uploaded_file=uploaded_file)
+
+    if scan_result["status"]:
+        st.session_state["original_content"] = scan_result["content"]
 @st.dialog("⚠ Sensitive Data Detected")
 def show_popup(result):
     risk = result.get("risk", "LOW")
@@ -271,47 +459,142 @@ def show_popup(result):
         "CRITICAL": "🔴"
     }
     st.markdown(f"## {color.get(risk,'🔴')} Risk Level : **{risk}**")
-    st.write(result["message"])
+    st.write(
+    result.get(
+        "message",
+        "Sensitive information detected"
+    )
+)
     st.markdown("---")
     detections = result.get("detections", [])
     if detections:
         df = pd.DataFrame(detections)
         st.dataframe(
             df,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🚫 Block Message",key="block_btn", use_container_width=True):
-            st.error("❌ Message Blocked Successfully")
-            st.session_state["action"] = "blocked"
+        if st.button("🚫 Block Message",key="block_btn", width="stretch"):
+            try:
+                response = requests.post(
+                        "http://127.0.0.1:8000/incident/create",
+                         json={
+
+                "employee_id": st.session_state.employee_id,
+
+                "file_name": uploaded_file.name,
+
+                "receiver_email": recipient_email,
+
+                "risk_level": result.get("risk"),
+
+                "status": "BLOCKED",
+
+                "action": "BLOCKED",
+
+                "detected_data": str(
+                    result.get("detections",[])
+                ),
+
+                "llm_prediction": result.get(
+    "llm_prediction",
+    "Sensitive"
+),
+
+               "confidence": str(
+    result.get(
+        "confidence",
+        "95%"
+    )
+),
+
+"confidentiality": result.get(
+    "confidentiality",
+    "Confidential"
+)
+
+            }
+        )
+                if response.status_code == 200:
+
+                      st.success("Blocked file saved successfully")
+                else:
+
+                      st.error( "Database save failed")      
+            except Exception as e:
+                    st.error("Backend connection error")
+                    st.write(e)
+            st.session_state["action"] = "blocked"   
             st.rerun()
     with col2:
-     if st.button("✅ Process Anyway",key="process_btn", use_container_width=True):
+     if st.button("✅ Process Anyway",key="process_btn", width="stretch"):
         st.session_state.action = "processed"
         st.rerun()
-send = st.button("🔍 Scan Document",
-    use_container_width=True)
+send = st.button("🔍 Scan Document",width="stretch")
+st.markdown("</div>", unsafe_allow_html=True)
 if send:
-    file = st.session_state.get("uploaded_file", None)
-    print("APP - user_text =", repr(user_text))
-    with st.spinner("🔍 Scanning document... Please wait"):
-        result = process_input(user_text, uploaded_file)
-        st.session_state.scan_time = datetime.now().strftime("%d-%m-%Y %I:%M:%S %p")
-        st.session_state.files_scanned += 1
-        if result["status"]:
-          if result["detected"]:
-            st.session_state.sensitive_found += len(result["detections"])
-            st.session_state.risk_level = result["risk"]
-          else:
-            st.session_state.risk_level = "SAFE"
-    if not result["status"]:
-        st.warning(result["message"])
+
+    if uploaded_file is None:
+
+        st.error("❌ Please upload a document")
+
     else:
-        st.session_state.result = result
-        st.session_state.message = result["content"]
+
+        with st.spinner("🔍 Scanning document... Please wait"):
+
+
+            result = scan_document_api(uploaded_file)
+
+
+            if result.get("status"):
+
+
+                scan_data = result["result"]
+
+                
+
+
+                st.session_state.scan_time = datetime.now().strftime(
+                    "%d-%m-%Y %I:%M:%S %p"
+                )
+
+
+                st.session_state.files_scanned += 1
+
+
+
+                if scan_data.get("detected"):
+
+
+                    st.session_state.sensitive_found += len(
+                        scan_data.get("detections", [])
+                    )
+
+
+                    st.session_state.risk_level = scan_data.get(
+                        "risk",
+                        "UNKNOWN"
+                    )
+
+
+                else:
+
+                    st.session_state.risk_level = "SAFE"
+
+
+
+                st.session_state.result = scan_data
+
+                st.session_state.message = uploaded_file.name
+
+
+
+            else:
+
+                st.error(result.get("message"))
 scan_result = st.session_state.get("result")
 if scan_result is not None:
     if scan_result.get("detected"):
@@ -322,7 +605,21 @@ if scan_result is not None:
               st.info(
                  f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
                  f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
-                 )
+              )
+              st.markdown(
+                          "<h3 style='color:white;'>📄 File Details</h3>",
+                          unsafe_allow_html=True
+                      )
+                      
+              st.markdown(
+                          f"<span style='color:white;'><b>File Name:</b> {uploaded_file.name}</span>",
+                          unsafe_allow_html=True
+                      )
+                      
+              st.markdown(
+                          f"<span style='color:white;'><b>File Type:</b> {uploaded_file.type}</span>",
+                          unsafe_allow_html=True
+                      )
               st.session_state.result = None
               st.session_state.action = None
               st.session_state.message = ""
@@ -330,7 +627,12 @@ if scan_result is not None:
         elif st.session_state.action == "processed":
 
             # Get email body
-            email_body = scan_result.get("content", "")
+            email_body = (
+    "File Scanned: "
+    + uploaded_file.name
+    + "\n\nDetected Data:\n"
+    + str(scan_result.get("detections"))
+)
 
 
             # Validate receiver email
@@ -349,85 +651,117 @@ if scan_result is not None:
 
             # Send incident to FastAPI backend
             try:
-
                 response = requests.post(
-
-                    "http://127.0.0.1:8000/incidents/process",
-
+    "http://127.0.0.1:8000/admin/alert",
+    json={
+        "employee_id": st.session_state["employee_id"],
+        "file_name": uploaded_file.name,
+        "risk_level": scan_result.get("risk"),
+        "detected_data": str(scan_result.get("detections", [])),
+        "sender_email": st.session_state["email"],
+        "receiver_email": recipient_email,
+        "file_content": st.session_state["original_content"],
+    }
+)
+                  
+                incident_response = requests.post("http://127.0.0.1:8000/incident/create",
                     json={
 
-    "employee_id": st.session_state["employee_id"],
+    "employee_id": st.session_state.employee_id,
 
-    "receiver_email": recipient_email.strip(),
+    "file_name": uploaded_file.name,
 
-    "sender_email": st.session_state.email,
+    "receiver_email": recipient_email,
 
-    "risk_level": scan_result.get("risk"),
+    "risk_level":scan_result.get("risk"),
 
-    "detected_data": str(scan_result.get("detections", [])),
+    "status":"BYPASSED",
 
-    "message": email_body,
+    "action":"PROCESSED",
 
-    "status": "BLOCKED"
+    "detected_data":str(
+            scan_result.get("detections",[])
+        ),
+
+    "llm_prediction": scan_result.get(
+            "llm_prediction",
+            "Sensitive"
+        ),
+
+    
+    "confidence": str(
+    scan_result.get(
+        "confidence",
+        "N/A"
+    )
+),
+
+    "confidentiality": scan_result.get(
+    "confidentiality",
+    "Unknown"
+)
 
 }
 
-                )
+)
+                print(scan_result)
+                if incident_response.status_code != 200:
 
+                    st.success("Incident save failed") 
+
+                             
 
                 if response.status_code == 200:
 
+                    data = response.json()
+
                     st.success(
-                        "✅ Message Delivered Successfully"
-                    )
+            "✅ Message Delivered Successfully"
+        )
+
+                   
 
                     st.info(
-                        "🔐 Security system verified the message."
-                    )
-
-                    st.warning(
-                        "⚠ Admin has been notified about this activity."
-                    )
-
+            f"Alert Time: {data['alert_time']}"
+        )
 
                 else:
 
                     st.error(
-                        "❌ Incident processing failed"
-                    )
+            "❌ Admin notification failed"
+        )
 
                     st.code(response.text)
 
 
             except Exception as e:
 
-                st.error(
-                    "❌ Backend connection failed"
-                )
+                    st.error(
+        "❌ Backend connection failed"
+    )
 
-                st.code(str(e))
+                    
 
 
             # Display uploaded file details
             if uploaded_file is not None:
 
-                st.markdown("## 📄 Uploaded File")
+                st.markdown(
+    "<h3 style='color:white;'>📄 File Details</h3>",
+    unsafe_allow_html=True
+)
 
-                st.write(
-                    "**File Name:**",
-                    uploaded_file.name
-                )
+                st.markdown(
+    f"<span style='color:white;'><b>File Name:</b> {uploaded_file.name}</span>",
+    unsafe_allow_html=True
+)
 
-                st.write(
-                    "**File Type:**",
-                    uploaded_file.type
-                )
+                st.markdown(
+    f"<span style='color:white;'><b>File Type:</b> {uploaded_file.type}</span>",
+    unsafe_allow_html=True
+)
 
-
-            st.markdown("### 📄 Content")
-
-            st.code(email_body)
-
+            
 
             # Clear session
             st.session_state.result = None
@@ -443,7 +777,7 @@ if scan_result is not None:
 
     # If no message is stored, use user text
         if email_body.strip() == "":
-            email_body = user_text
+            email_body = uploaded_file.name
 
     # If a file was uploaded and extracted, use result content
         if st.session_state.result is not None:
@@ -467,19 +801,33 @@ if scan_result is not None:
         )
 
             if email_result is True:
-                st.success("✅ Message Sent Successfully")
+                
                 st.success("📧 Email Sent Successfully!")
-                requests.post(
-    "http://127.0.0.1:8000/incidents/process",
+                incident_response =requests.post(
+    "http://127.0.0.1:8000/incident/create",
     json={
-        "employee_id": st.session_state.employee_id,
-        "receiver_email": recipient_email.strip(),
-        "sender_email": st.session_state.email,
-        "risk_level": "SAFE",
-        "detected_data": "None",
-        "message": email_body,
-        "status": "SAFE"
-    }
+
+    "employee_id": st.session_state.employee_id,
+
+    "file_name": uploaded_file.name,
+
+    "receiver_email": recipient_email,
+
+    "risk_level": "LOW",
+
+    "status": "safe",
+
+    "action":"ALLOWED",
+
+    "detected_data": str(scan_result.get("detections")),
+
+    "llm_prediction": "Safe",
+
+    "confidence":"safe",
+
+    "confidentiality": "Public",
+
+}
 )
                 
             else:
@@ -491,15 +839,36 @@ if scan_result is not None:
             f"📅 Date : {datetime.now().strftime('%d-%m-%Y')}\n\n"
             f"🕒 Time : {datetime.now().strftime('%I:%M:%S %p')}"
                  )
+        
+        st.markdown(
+            "<h3 style='color:white;'>📄 File Details</h3>",
+            unsafe_allow_html=True
+        )
+        
+        st.markdown(
+            f"<span style='color:white;'><b>File Name:</b> {uploaded_file.name}</span>",
+            unsafe_allow_html=True
+        )
+        
+        st.markdown(
+            f"<span style='color:white;'><b>File Type:</b> {uploaded_file.type}</span>",
+            unsafe_allow_html=True
+        )
         st.info("No personal or confidential information detected.")
         
-        st.markdown("### 📄 Content")
-
-        st.code(st.session_state.message)
 
         st.session_state.result = None
         st.session_state.message = ""
 st.markdown("---")
+
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+    if st.button("⬅ Back to Dashboard", width="stretch", key="back_dashboard"):
+        st.switch_page("pages/employee_dashboard.py")
+
+st.markdown("---")
+
 st.caption(
-"Secure Data Scanner • AI Powered DLP • Version 1.0"
+    "Secure Data Scanner • AI Powered DLP • Version 1.0"
 )

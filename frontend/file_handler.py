@@ -4,7 +4,7 @@ from validate import analyze_text
 
 
 def read_uploaded_file(uploaded_file):
-    print(" fileupload called")
+    print("fileupload called")
 
     if uploaded_file is None:
         return ""
@@ -32,7 +32,9 @@ def read_uploaded_file(uploaded_file):
             text = ""
 
             with pdfplumber.open(uploaded_file) as pdf:
+
                 print("Total Pages:", len(pdf.pages))
+
                 for i, page in enumerate(pdf.pages):
 
                     page_text = page.extract_text()
@@ -40,9 +42,10 @@ def read_uploaded_file(uploaded_file):
                     print(f"Page {i+1}: {repr(page_text)}")
 
                     if page_text:
-                       text += page_text + "\n"
-            print("Final PDF Text:",repr(text))
-            
+                        text += page_text + "\n"
+
+            print("Final PDF Text:", repr(text))
+
             return text
 
         # ---------------- DOCX ----------------
@@ -51,11 +54,10 @@ def read_uploaded_file(uploaded_file):
             uploaded_file.seek(0)
 
             doc = Document(uploaded_file)
-            print("Paragraphs:", len(doc.paragraphs))
+
             text = ""
 
             for para in doc.paragraphs:
-                print("Paragraph:", repr(para.text))
                 text += para.text + "\n"
 
             return text
@@ -70,30 +72,40 @@ def read_uploaded_file(uploaded_file):
         return ""
 
 
+def process_input(user_text="", uploaded_file=None):
+    """
+    Reads uploaded file + optional user text.
+    Returns:
+        {
+            status,
+            content,
+            detections,
+            risk,
+            ...
+        }
+    """
 
-def process_input(user_text, uploaded_file):
     print("process_input called")
     print("=" * 50)
-    print("User Text:", repr(user_text))
-    print("Uploaded File:", uploaded_file)
 
     final_text = ""
 
+    # Read uploaded file
     if uploaded_file is not None:
-        print("Reading file:", uploaded_file.name)
+
+        print("Reading:", uploaded_file.name)
 
         file_text = read_uploaded_file(uploaded_file)
 
-        print("Extracted text:")
-        print(repr(file_text))
-
         final_text += file_text
 
+    # Add manual text if provided
     if user_text:
         final_text += "\n" + user_text
 
-    print("Final text:")
+    print("Final Text:")
     print(repr(final_text))
+
     print("=" * 50)
 
     if final_text.strip() == "":
@@ -102,7 +114,10 @@ def process_input(user_text, uploaded_file):
             "message": "Please enter text or upload a file."
         }
 
+    # Analyze text
     result = analyze_text(final_text)
+
+    # Save original content
     result["status"] = True
     result["content"] = final_text
 

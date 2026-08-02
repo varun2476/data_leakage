@@ -4,19 +4,23 @@ from datetime import datetime
 
 class IncidentCreate(BaseModel):
 
-    employee_id: int
+    employee_id:int
 
-    receiver_email: str
+    file_name:str
 
-    sender_email: str
+    receiver_email:str
 
-    risk_level: str
+    risk_level:str
 
-    detected_data: str
+    status:str
 
-    message: str
+    detected_data:str
 
-    status: str
+    llm_prediction:str=""
+
+    confidence:str=""
+
+    confidentiality:str=""
 
 
 class IncidentResponse(BaseModel):
@@ -39,6 +43,7 @@ class IncidentResponse(BaseModel):
 
     created_at: datetime
 
+    action:str=""
     
 
     class Config:

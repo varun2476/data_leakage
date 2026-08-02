@@ -23,7 +23,13 @@ st.markdown(
     background:#0b1120;
 
 }
+.block-container{
 
+    padding-top:1rem;
+
+    max-width:420px;
+
+}
 
 /* Remove Streamlit Header */
 
@@ -58,9 +64,9 @@ header{
 
     background:#111827;
 
-    padding:40px;
+    padding:25px;
 
-    border-radius:25px;
+    border-radius:20px;
 
     border:1px solid #334155;
 
@@ -76,7 +82,7 @@ header{
 
 .logo{
 
-    font-size:70px;
+    font-size:45px;
 
 }
 
@@ -88,9 +94,9 @@ header{
 
     color:white;
 
-    font-size:35px;
+    font-size:28px;
 
-    margin-bottom:10px;
+    margin-bottom:5px;
 
 }
 
@@ -102,7 +108,7 @@ header{
 
     color:#94a3b8;
 
-    font-size:18px;
+    font-size:14px;
 
 }
 
@@ -132,7 +138,7 @@ label{
 
     border-radius:12px;
 
-    height:45px;
+    height:38px;
 
 }
 
@@ -146,7 +152,7 @@ label{
     width:100%;
 
 
-    height:50px;
+    height:42px;
 
 
     border-radius:15px;
@@ -163,7 +169,7 @@ label{
     color:white;
 
 
-    font-size:20px;
+    font-size:16px;
 
 
     font-weight:bold;
@@ -174,7 +180,17 @@ label{
 
 }
 
+.login-card{
+    padding:40px;
+}
 
+.logo{
+    font-size:70px;
+}
+
+.login-card h1{
+    font-size:35px;
+}
 
 .stButton button:hover{
 
@@ -283,6 +299,14 @@ role = st.selectbox(
     "👔 Role",
     [ "user", "admin"]
 )
+department = ""
+
+if role == "user":
+    department = st.text_input(
+        "🏢 Department",
+        placeholder="Enter your department"
+    )
+
 col1,col2 = st.columns(2)
 
 
@@ -314,24 +338,29 @@ st.write("")
 # ==========================
 
 if st.button("SIGN IN"):
+    st.write("SIGN IN BUTTON CLICKED")
 
+    if role == "user" and not department.strip():
+        st.warning("Please enter your department.")
+        st.stop()
 
-    if email and password and role :
-
+    if email and password:
 
         try:
 
+            payload = {
+    "email": email,
+    "password": password,
+    "role": role.lower()
+}
+
+            if role == "user":
+                payload["department"] = department
+
             response = requests.post(
-
                 "http://127.0.0.1:8000/auth/login",
-
-                json={
-                    "email": email,
-                    "password": password,
-                    "role":role.lower()
-                }
-
-            )
+                json=payload
+                )
 
 
             if response.status_code == 200:
@@ -346,6 +375,8 @@ if st.button("SIGN IN"):
 
                 st.session_state.role = data["role"]
                 st.session_state.email = data["email"]
+
+                st.session_state.department = data.get("department", "Not Available")
                 
 
                 # Role based navigation
@@ -423,5 +454,5 @@ Don't have an account?
 unsafe_allow_html=True
 )
 
-if st.button("📝 Create Account", use_container_width=True):
+if st.button("📝 Create Account", width="stretch"):
     st.switch_page("pages/sign.py")

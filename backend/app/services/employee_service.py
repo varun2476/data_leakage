@@ -17,7 +17,11 @@ def create_employee(db, employee):
 
         password=employee.password,
 
-        role=employee.role
+        department=employee.department,
+
+        role="user",
+
+        status="ACTIVE",
 
     )
 

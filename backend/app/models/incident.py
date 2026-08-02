@@ -5,22 +5,38 @@ from app.database import Base
 
 
 class Incident(Base):
+
     __tablename__ = "incidents"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
 
-    employee_id = Column(Integer, nullable=False)
+    employee_id = Column(Integer)
 
-    receiver_email = Column(String, nullable=False)
+    file_name = Column(String)
 
-    sender_email = Column(String, nullable=True)
+    receiver_email = Column(String)
 
-    risk_level = Column(String, nullable=False)
+    risk_level = Column(String)
+
+    status = Column(String,
+                   nullable=False, 
+                    )
+
 
     detected_data = Column(Text)
+    action = Column(
+    String,
+    nullable=True
+)
+    llm_prediction = Column(String)
 
-    message = Column(Text)
+    confidence = Column(String)
 
-    status = Column(String)
+    confidentiality = Column(String)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )

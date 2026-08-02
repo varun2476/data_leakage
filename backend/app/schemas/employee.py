@@ -9,8 +9,6 @@ class EmployeeRegister(BaseModel):
     email:EmailStr
 
     password:str
-
-    role:str="user"
     
     department:str
 

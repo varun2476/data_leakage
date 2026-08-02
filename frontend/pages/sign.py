@@ -272,10 +272,7 @@ password = st.text_input(
     type="password"
 )
 
-role = st.selectbox(
-    "👔 Role",
-    [ "user", "admin"]
-)
+role = "user"
 department = st.text_input(
     " department",
     placeholder="Create  department",
@@ -297,7 +294,7 @@ if st.button("CREATE ACCOUNT"):
                     "name": username,
                     "email": email,
                     "password": password,
-                    "role": role,
+                    "role": "user",
                     "department":department,
                     
                 }

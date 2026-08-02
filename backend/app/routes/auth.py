@@ -51,10 +51,12 @@ def register(
         )
 
 
+    
+
     new_user = create_employee(
-        db,
-        employee
-    )
+    db,
+    employee
+)
 
 
     return {
@@ -124,6 +126,10 @@ def login(
 
         "role": employee.role,
 
-        "email": employee.email
+        "email": employee.email,
+
+        "department": employee.department,
+
+    
 
     }
